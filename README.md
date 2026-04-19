@@ -37,7 +37,31 @@ Publishing runs only when you **publish a GitHub Release** (not on draft release
    Set **`version`** in `pyproject.toml` to the version you are about to ship (e.g. `0.0.1`). Commit and push to `main`. PyPI will reject a version that already exists for that project.
 
 5. **Tag and release**  
-   Create a **git tag** on that commit (convention: `v0.0.1` matching the version). In GitHub: **Releases → Draft a new release**, choose the tag, set title/notes, then **Publish release**. That fires **`release: types: [published]`**, runs **`ci`** via `workflow_call`, then **`publish`** (`uv build --clear` and `uv publish --trusted-publishing always`).
+   From the repo root, with `main` checked out and your new `version` already committed and pushed:
+
+   ```bash
+   cd /path/to/backpressure-placeholder
+   git checkout main
+   git pull origin main
+
+   # Must match [project].version in pyproject.toml (PEP 440), tag usually has a "v" prefix
+   VERSION=0.0.1
+
+   git tag -a "v${VERSION}" -m "Release v${VERSION}"
+   git push origin "v${VERSION}"
+   ```
+
+   **Publish the GitHub Release** (this is what triggers `publish.yml`; a tag alone is not enough):
+
+   **Option A — GitHub CLI** (creates a published release, not a draft):
+
+   ```bash
+   gh release create "v${VERSION}" --title "v${VERSION}" --generate-notes
+   ```
+
+   **Option B — Web UI:** **Releases → Create a new release** → choose tag `v…` → fill title/notes → **Publish release** (not “Save draft”).
+
+   That fires **`release: types: [published]`**, runs **`ci`** via `workflow_call`, then **`publish`** (`uv build --clear` and `uv publish --trusted-publishing always`).
 
 6. **Verify**  
    Open `https://pypi.org/project/backpressure/` and confirm the new version appears.
